@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Churrasco Pro - V5.0 Final</title>
+    <style>
+        :root {
+            --primary-color: #ff4500;
+            --secondary-color: #ff8c00;
+            --dark-bg: #1a1a1a;
+            --light-bg: rgba(10, 10, 10, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: #444;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+        }
+        .fire-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 100%, var(--primary-color) 0%, #ff6600 20%, #cc3300 40%, var(--dark-bg) 70%);
+            animation: fireFlicker 3s ease-in-out infinite alternate;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        @keyframes fireFlicker {
+            0% { opacity: 0.5; transform: scale(1.05); }
+            100% { opacity: 0.7; transform: scale(1.08); }
+        }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+        .header {
+            text-align: center; margin-bottom: 40px; padding: 30px;
+            background: rgba(0, 0, 0, 0.7); border-radius: 20px; backdrop-filter: blur(10px);
+            border: 1px solid var(--primary-color); box-shadow: 0 0 30px rgba(255, 69, 0, 0.2);
+        }
+        .header h1 {
+            font-size: 2.8rem; font-weight: bold; margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), #ffaa00);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 69, 0, 0.4);
+        }
+        .header p { font-size: 1.1rem; color: #ccc; }
+        .wizard-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .wizard-step {
+            background: var(--light-bg); border-radius: 20px; padding: 30px;
+            border: 1px solid var(--border-color); backdrop-filter: blur(5px); transition: all 0.3s ease;
+        }
+        .wizard-step:hover { border-color: var(--primary-color); }
+        .step-title {
+            font-size: 1.5rem; color: var(--primary-color); margin-bottom: 25px; text-align: center;
+            font-weight: bold; border-bottom: 1px solid var(--primary-color); padding-bottom: 10px;
+        }
+        label { display: block; margin-bottom: 8px; color: #ccc; font-weight: 500; }
+        input[type="number"], select {
+            width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #555; border-radius: 10px; color: #fff; font-size: 16px; transition: all 0.3s ease;
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.3); background: rgba(255, 255, 255, 0.1);
+        }
+		.form-group { margin-bottom: 20px; }
+		.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+		.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 10px; }
+        .checkbox-item {
+            display: flex; align-items: center; padding: 12px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px; border: 1px solid #555; cursor: pointer; transition: all 0.3s ease; position: relative;
+        }
+		.checkbox-item input[type="checkbox"] { position: absolute; opacity: 0; width: 100%; height: 100%; top:0; left:0; cursor: pointer; }
+        .checkbox-item label { margin: 0; cursor: pointer; width: 100%; text-align: center; }
+		.checkbox-item input[type="checkbox"]:checked + label { color: var(--secondary-color); font-weight: bold; }
+		.checkbox-item:has(input:checked) { border-color: var(--primary-color); background: rgba(255, 69, 0, 0.1); }
+        .scenario-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .scenario-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid #555; border-radius: 10px;
+            padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s ease;
+        }
+        .scenario-card:hover { border-color: var(--secondary-color); }
+        .scenario-card.active { border-color: var(--primary-color); background: rgba(255, 69, 0, 0.1); box-shadow: 0 0 15px rgba(255, 69, 0, 0.2); }
+        .scenario-card h3 { color: #fff; margin: 0; font-size: 1rem; }
+        .scenario-card.active h3 { color: var(--secondary-color); }
+        .results-container {
+            display: none; grid-template-columns: 1fr; gap: 20px; margin-top: 40px; max-width: 1000px;
+            margin-left: auto; margin-right: auto; background: rgba(0, 0, 0, 0.7); border-radius: 20px;
+            padding: 30px; border: 1px solid var(--primary-color); backdrop-filter: blur(10px);
+        }
+        .feedback-notice {
+            padding: 15px; background-color: rgba(255, 140, 0, 0.1); border-left: 4px solid var(--secondary-color);
+            border-radius: 8px; margin-bottom: 20px; color: #eee;
+        }
+        .shopping-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .shopping-category { background: var(--card-bg); border-radius: 15px; padding: 20px; border: 1px solid var(--border-color); }
+        .shopping-category h4 { color: var(--secondary-color); margin-bottom: 15px; font-size: 1.2rem; text-align: center; }
+        .shopping-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; border-bottom: 1px solid #333; font-size: 0.95rem; }
+        .shopping-item:last-child { border-bottom: none; }
+        .shopping-item-name { color: #ddd; display: flex; align-items: center; }
+        .shopping-item-qty { color: #ffae42; font-weight: bold; }
+        .cost-breakdown { background: var(--light-bg); border-radius: 15px; padding: 25px; margin-top: 20px; border: 1px solid var(--border-color); }
+        .cost-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #333; }
+		.cost-item span:first-child { color: #ccc; }
+		.cost-item span:last-child { color: #fff; }
+        .cost-total {
+            margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--primary-color); display: flex;
+            justify-content: space-between; font-size: 1.5rem; font-weight: bold; color: var(--secondary-color);
+        }
+        .tooltip-container { position: relative; display: inline-flex; margin-left: 8px; }
+        .tooltip-icon {
+            font-size: 0.8rem; width: 18px; height: 18px; border-radius: 50%; background: #555;
+            color: #fff; display: flex; align-items: center; justify-content: center; cursor: help;
+        }
+        .tooltip-text {
+            visibility: hidden; width: 250px; background-color: #222; color: #fff; text-align: left;
+            border-radius: 6px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%;
+            margin-left: -125px; opacity: 0; transition: opacity 0.3s; font-weight: normal; font-size: 0.9rem;
+        }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+		
+        @media (max-width: 900px) { .wizard-container { grid-template-columns: 1fr; } }
+		@media (max-width: 768px) { .header h1 { font-size: 2.2rem; } .form-grid, .form-grid-3, .scenario-selector { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="fire-bg"></div>
+    <div class="container">
+        <div class="header"><h1>🔥 CHURRASCO PRO CALCULATOR</h1><p>Planeje seu evento com precisão e evite desperdícios!</p></div>
+        <div class="wizard-container">
+            <div class="wizard-step">
+                <h2 class="step-title">👥 Convidados</h2>
+				<div class="form-group">
+					<div class="form-grid-3">
+						<div><label>Homens</label><input type="number" id="homens" min="0" value="0"></div>
+						<div><label>Mulheres</label><input type="number" id="mulheres" min="0" value="0"></div>
+						<div><label>Crianças</label><input type="number" id="criancas" min="0" value="0"></div>
+					</div>
+				</div>
+				<div class="form-group"><label>Vegetarianos (do total)</label><input type="number" id="vegetarianos" min="0" value="0"></div>
+            </div>
+            <div class="wizard-step">
+                <h2 class="step-title">🗓️ Contexto do Evento</h2>
+                <div class="form-group">
+					<div class="form-grid">
+						<div><label>⏰ Duração</label><select id="duracao"><option value="curto">Até 3 horas</option><option value="medio" selected>De 4 a 6 horas</option><option value="longo">Mais de 6 horas</option></select></div>
+						<div><label>🌡️ Clima Previsto</label><select id="clima"><option value="frio">Frio (-20°C)</option><option value="normal" selected>Normal (20-28°C)</option><option value="quente">Quente (+28°C)</option></select></div>
+					</div>
+                </div>
+                <div class="form-group">
+                    <label>💰 Estilo do Churrasco</label>
+                    <div class="scenario-selector">
+                        <div class="scenario-card" data-value="economico"><h3>💵 Econômico</h3></div>
+                        <div class="scenario-card active" data-value="premium"><h3>🥩 Premium</h3></div>
+                        <div class="scenario-card" data-value="vip"><h3>👑 VIP</h3></div>
+                    </div>
+                </div>
+            </div>
+            <div class="wizard-step">
+                <h2 class="step-title">🥩 O que servir?</h2>
+				<div class="form-group"><label>Selecione as Carnes</label><div class="checkbox-grid" id="meats-options"></div></div>
+				<div class="form-group"><label>Selecione os Acompanhamentos</label><div class="checkbox-grid" id="sides-options"></div></div>
+            </div>
+            <div class="wizard-step">
+                <h2 class="step-title">🍻 Bebidas</h2>
+				<div class="form-group"><label>Selecione as Bebidas</label><div class="checkbox-grid" id="drinks-options"></div></div>
+            </div>
+        </div>
+        <div class="results-container" id="resultados">
+            <div id="feedback-container"></div>
+            <h2 class="step-title">📦 Sua Lista de Compras</h2>
+            <div class="shopping-grid" id="lista-compras"></div>
+            <h2 class="step-title" style="margin-top:20px;">💸 Custo Estimado</h2>
+            <div class="cost-breakdown" id="resumo-custos"></div>
+        </div>
+    </div>
+
+<script>
+const config = {
+    consumoBase: { // Em kg ou litros por pessoa
+        homem:   { carne: 0.450, carboidrato: 0.150, salada: 0.100, petisco: 0.050, bebida: 1.500 },
+        mulher:  { carne: 0.350, carboidrato: 0.120, salada: 0.150, petisco: 0.050, bebida: 1.200 },
+        crianca: { carne: 0.150, carboidrato: 0.200, salada: 0.050, petisco: 0.100, bebida: 0.800 }
+    },
+    modificadores: {
+        duracao: { curto: 0.75, medio: 1, longo: 1.4 },
+        clima:   { frio: 0.8, normal: 1, quente: 1.5 }
+    },
+    itens: {
+        // Carnes com pesos de sugestão por perfil
+        linguica:  { nome: 'Linguiça Toscana', tipo: 'carne', unidade: 'kg', preco: 25.00, tier: 'economico', peso_sugestao: { homem: 2.0, mulher: 2.0, crianca: 2.5 }, default_for: ['economico', 'premium', 'vip'] },
+        frango:    { nome: 'Asa/Coxa de Frango', tipo: 'carne', unidade: 'kg', preco: 19.90, tier: 'economico', peso_sugestao: { homem: 1.0, mulher: 1.5, crianca: 3.0 }, default_for: ['economico'] },
+        porco:     { nome: 'Lombo/Costela Suína', tipo: 'carne', unidade: 'kg', preco: 28.00, tier: 'economico', peso_sugestao: { homem: 1.5, mulher: 1.0, crianca: 1.0 }, default_for: [] },
+        alcatra:   { nome: 'Alcatra', tipo: 'carne', unidade: 'kg', preco: 49.90, tier: 'premium', peso_sugestao: { homem: 2.0, mulher: 2.0, crianca: 1.0 }, default_for: ['premium'] },
+        fraldinha: { nome: 'Fraldinha', tipo: 'carne', unidade: 'kg', preco: 45.50, tier: 'premium', peso_sugestao: { homem: 2.2, mulher: 1.8, crianca: 0.8 }, default_for: [] },
+        picanha:   { nome: 'Picanha', tipo: 'carne', unidade: 'kg', preco: 75.90, tier: 'premium', peso_sugestao: { homem: 3.0, mulher: 2.5, crianca: 0.5 }, default_for: ['premium', 'vip'] },
+        ancho:     { nome: 'Bife Ancho', tipo: 'carne', unidade: 'kg', preco: 89.90, tier: 'vip', peso_sugestao: { homem: 3.0, mulher: 2.8, crianca: 0.2 }, default_for: ['vip'] },
+        chorizo:   { nome: 'Bife de Chorizo', tipo: 'carne', unidade: 'kg', preco: 85.00, tier: 'vip', peso_sugestao: { homem: 2.8, mulher: 2.6, crianca: 0.2 }, default_for: [] },
+        
+        // Acompanhamentos com sub_tipos
+        pao_alho:    { nome: 'Pão de Alho', tipo: 'acompanhamento', sub_tipo: 'carboidrato', unidade: 'unidades', preco: 3.00, peso_sugestao: 1.5, default_for: ['economico', 'premium', 'vip'] },
+        farofa:      { nome: 'Farofa Pronta', tipo: 'acompanhamento', sub_tipo: 'carboidrato', unidade: 'pacotes (500g)', preco: 8.00, peso_sugestao: 1.0, default_for: ['economico', 'premium'] },
+        vinagrete:   { nome: 'Vinagrete', tipo: 'acompanhamento', sub_tipo: 'salada', unidade: 'porções', preco: 15.00, peso_sugestao: 1.0, default_for: ['premium', 'vip'] },
+        legumes:     { nome: 'Legumes Grelhados', tipo: 'acompanhamento', sub_tipo: 'salada', unidade: 'porções', preco: 20.00, peso_sugestao: 0.8, default_for: [] },
+        queijo:      { nome: 'Queijo Coalho', tipo: 'acompanhamento', sub_tipo: 'petisco', unidade: 'espetos', preco: 5.00, peso_sugestao: 1.0, default_for: ['premium', 'vip'] },
+        
+        // Bebidas
+        cerveja:     { nome: 'Cerveja', tipo: 'bebida_alcoolica', unidade: 'latas (350ml)', preco: 3.50, default_for: ['economico', 'premium', 'vip'] },
+        refrigerante:{ nome: 'Refrigerante', tipo: 'bebida_nao_alcoolica', unidade: 'garrafas (2L)', preco: 8.50, default_for: ['economico', 'premium', 'vip'] },
+        suco:        { nome: 'Suco', tipo: 'bebida_nao_alcoolica', unidade: 'litros', preco: 9.00, default_for: ['premium'] },
+        agua:        { nome: 'Água', tipo: 'bebida_nao_alcoolica', unidade: 'garrafas (1.5L)', preco: 3.00, default_for: ['economico', 'premium', 'vip'] },
+		
+		// Extras
+		carvao:      { nome: 'Carvão', tipo: 'extra', unidade: 'sacos (4kg)', preco: 15.00 },
+		gelo:        { nome: 'Gelo', tipo: 'extra', unidade: 'sacos (5kg)', preco: 10.00 }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const containers = {
+        carne: document.getElementById('meats-options'),
+        acompanhamento: document.getElementById('sides-options'),
+        bebida: document.getElementById('drinks-options')
+    };
+    for (const id in config.itens) {
+        const item = config.itens[id];
+        let tipoContainer = item.tipo.includes('bebida') ? 'bebida' : item.tipo;
+        if (containers[tipoContainer]) {
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            div.innerHTML = `<input type="checkbox" id="check-${id}" data-id="${id}"><label for="check-${id}">${item.nome}</label>`;
+            containers[tipoContainer].appendChild(div);
+        }
+    }
+
+    function setPresetsAndCalculate() {
+        const estilo = document.querySelector('.scenario-card.active').dataset.value;
+        document.querySelectorAll('input[type="checkbox"][data-id]').forEach(cb => {
+            const id = cb.dataset.id;
+            const itemConfig = config.itens[id];
+            cb.checked = itemConfig.default_for?.includes(estilo) || false;
+        });
+        iniciarCalculo();
+    }
+    
+    document.querySelectorAll('.scenario-card').forEach(card => {
+        card.addEventListener('click', () => {
+            if (card.classList.contains('active')) return;
+            document.querySelector('.scenario-card.active').classList.remove('active');
+            card.classList.add('active');
+            setPresetsAndCalculate();
+        });
+    });
+    
+    const triggers = document.querySelectorAll('input[type="number"], select, input[type="checkbox"]');
+    triggers.forEach(trigger => {
+        trigger.addEventListener('input', iniciarCalculo);
+        trigger.addEventListener('change', iniciarCalculo);
+    });
+
+    setPresetsAndCalculate();
+});
+
+function iniciarCalculo() {
+    const inputs = getInputs();
+    if (!inputs) {
+        document.getElementById('resultados').style.display = 'none';
+        return;
+    }
+    const {listaFinal, avisos} = distribuirNecessidades(inputs);
+    renderResultados(listaFinal, avisos);
+}
+
+function getInputs() {
+    const homens = parseInt(document.getElementById('homens').value) || 0;
+    const mulheres = parseInt(document.getElementById('mulheres').value) || 0;
+    const criancas = parseInt(document.getElementById('criancas').value) || 0;
+    const vegetarianos = parseInt(document.getElementById('vegetarianos').value) || 0;
+    const totalPessoas = homens + mulheres + criancas;
+    if (totalPessoas === 0) return null;
+
+    const selecionados = { carne: [], acompanhamento: [], bebida_alcoolica: [], bebida_nao_alcoolica: [], extra: ['carvao', 'gelo'] };
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+        const id = cb.dataset.id;
+        const tipo = config.itens[id].tipo;
+        if (selecionados[tipo]) selecionados[tipo].push(id);
+    });
+
+    return {
+        pessoas: { homens, mulheres, criancas, vegetarianos, total: totalPessoas },
+        adultos: homens + mulheres,
+        consumidoresCarne: Math.max(0, totalPessoas - vegetarianos),
+        contexto: {
+            duracao: document.getElementById('duracao').value,
+            clima: document.getElementById('clima').value,
+            estiloChurrasco: document.querySelector('.scenario-card.active').dataset.value
+        },
+        selecionados
+    };
+}
+
+function calcularNecessidades(inputs, fatorDuracao) {
+    const { pessoas } = inputs;
+    const { consumoBase } = config;
+    const necessidades = {};
+    const categoriasConsumo = ['carne', 'carboidrato', 'salada', 'petisco', 'bebida'];
+
+    categoriasConsumo.forEach(cat => {
+        if(cat === 'bebida'){
+            necessidades['bebida_alcoolica'] = ((pessoas.homens * consumoBase.homem.bebida) + (pessoas.mulheres * consumoBase.mulher.bebida)) * fatorDuracao * config.modificadores.clima[inputs.contexto.clima];
+            necessidades['bebida_nao_alcoolica'] = ((pessoas.homens * consumoBase.homem.bebida * 0.5) + (pessoas.mulheres * consumoBase.mulher.bebida * 0.5) + (pessoas.criancas * consumoBase.crianca.bebida)) * fatorDuracao * config.modificadores.clima[inputs.contexto.clima];
+        } else {
+             necessidades[cat] = ((pessoas.homens * consumoBase.homem[cat]) + (pessoas.mulheres * consumoBase.mulher[cat]) + (pessoas.criancas * consumoBase.crianca[cat])) * fatorDuracao;
+        }
+    });
+
+    // Ajusta necessidade de carne para vegetarianos
+    necessidades.carne *= (inputs.consumidoresCarne > 0 ? (inputs.consumidoresCarne / pessoas.total) : 0);
+
+    return necessidades;
+}
+
+function distribuirNecessidades(inputs) {
+    const { selecionados, contexto, pessoas, consumidoresCarne } = inputs;
+    const fatorDuracao = config.modificadores.duracao[contexto.duracao];
+    const necessidades = calcularNecessidades(inputs, fatorDuracao);
+    
+    const listaFinal = new Map();
+    const avisos = new Set();
+    const tiersPermitidos = { economico: ['economico'], premium: ['economico', 'premium'], vip: ['economico', 'premium', 'vip'] };
+
+    // --- CARNES ---
+    if (selecionados.carne.length > 0) {
+        if (consumidoresCarne <= 0) {
+            avisos.add("Nenhuma carne calculada pois todos os convidados são vegetarianos.");
+        } else {
+            let carnesElegiveis = selecionados.carne.filter(id => tiersPermitidos[contexto.estiloChurrasco].includes(config.itens[id].tier));
+            if (carnesElegiveis.length === 0) {
+                carnesElegiveis = [...selecionados.carne];
+                avisos.add(`Suas seleções de carne não se encaixam no estilo '${contexto.estiloChurrasco}'. Calculamos com base em todos os itens que você escolheu.`);
+            }
+            
+            const relevanciaCarnes = carnesElegiveis.map(id => {
+                const pesos = config.itens[id].peso_sugestao;
+                const relevancia = (pesos.homem * pessoas.homens) + (pesos.mulher * pessoas.mulheres) + (pesos.crianca * pessoas.criancas);
+                return { id, relevancia };
+            });
+
+            const somaRelevancia = relevanciaCarnes.reduce((soma, item) => soma + item.relevancia, 0);
+
+            if (somaRelevancia > 0) {
+                relevanciaCarnes.forEach(item => {
+                    const itemConfig = config.itens[item.id];
+                    const proporcao = item.relevancia / somaRelevancia;
+                    const quantidade = parseFloat((necessidades.carne * proporcao).toFixed(2));
+                    if (quantidade > 0.05) {
+                        const tooltip = `Recomendação baseada no perfil de convidados e no estilo de churrasco '${contexto.estiloChurrasco}'.`;
+                        listaFinal.set(item.id, { ...itemConfig, quantidade, custo: quantidade * itemConfig.preco, tooltip });
+                    }
+                });
+            }
+        }
+    }
+
+    // --- ACOMPANHAMENTOS ---
+    if(selecionados.acompanhamento.length > 0) {
+        const acompanhamentosPorSubtipo = {};
+        selecionados.acompanhamento.forEach(id => {
+            const sub_tipo = config.itens[id].sub_tipo;
+            if(!acompanhamentosPorSubtipo[sub_tipo]) acompanhamentosPorSubtipo[sub_tipo] = [];
+            acompanhamentosPorSubtipo[sub_tipo].push(id);
+        });
+
+        for(const sub_tipo in acompanhamentosPorSubtipo){
+            const itensDoSubtipo = acompanhamentosPorSubtipo[sub_tipo];
+            const necessidadeTotalSubtipo = necessidades[sub_tipo] || 0;
+            const somaPesos = itensDoSubtipo.reduce((soma, id) => soma + config.itens[id].peso_sugestao, 0);
+
+            if(somaPesos > 0){
+                itensDoSubtipo.forEach(id => {
+                    const itemConfig = config.itens[id];
+                    const proporcao = itemConfig.peso_sugestao / somaPesos;
+                    let quantidade = necessidadeTotalSubtipo * proporcao;
+
+                    if (itemConfig.unidade === 'unidades' || itemConfig.unidade.includes('pacotes') || itemConfig.unidade === 'espetos') {
+                        quantidade = Math.ceil(quantidade / (itemConfig.peso_sugestao / somaPesos)); // Heurística para unidades
+                    } else {
+                        quantidade = parseFloat(quantidade.toFixed(2));
+                    }
+                    
+                    if(quantidade > 0){
+                       const tooltip = `Item do grupo '${sub_tipo}', balanceado com outros itens selecionados da mesma categoria.`;
+                       listaFinal.set(id, { ...itemConfig, quantidade, custo: quantidade * itemConfig.preco, tooltip });
+                    }
+                });
+            }
+        }
+    }
+
+    // --- BEBIDAS E EXTRAS ---
+    ['bebida_alcoolica', 'bebida_nao_alcoolica', 'extra'].forEach(tipo => {
+        const itensSelecionados = selecionados[tipo];
+        if(!itensSelecionados || itensSelecionados.length === 0) return;
+
+        if (tipo.includes('bebida')) {
+            const necessidadeTotal = necessidades[tipo];
+            const necessidadePorBebida = necessidadeTotal / itensSelecionados.length;
+            itensSelecionados.forEach(id => {
+                const itemConfig = config.itens[id];
+                const litrosPorUnidade = itemConfig.unidade.includes('350ml') ? 0.350 : itemConfig.unidade.includes('2L') ? 2 : itemConfig.unidade.includes('1.5L') ? 1.5 : 1;
+                const quantidade = Math.ceil(necessidadePorBebida / litrosPorUnidade);
+                if (quantidade > 0) {
+                    const tooltip = `Ajustado para duração e clima.`;
+                    listaFinal.set(id, { ...itemConfig, quantidade, custo: quantidade * itemConfig.preco, tooltip });
+                }
+            });
+        } else { // Extras
+            itensSelecionados.forEach(id => {
+                const itemConfig = config.itens[id];
+                let quantidade = 0;
+                let tooltip = '';
+                if (id === 'carvao') {
+                    quantidade = Math.ceil((consumidoresCarne / 4) * fatorDuracao);
+                    tooltip = `1 saco para cada 4 carnívoros, ajustado pela duração.`;
+                } else if (id === 'gelo') {
+                    quantidade = Math.ceil((pessoas.total / 3.3) * fatorDuracao * config.modificadores.clima[contexto.clima]);
+                    tooltip = `Ajustado pela duração e pelo clima.`;
+                }
+                if (quantidade > 0) {
+                    listaFinal.set(id, { ...itemConfig, quantidade, custo: quantidade * itemConfig.preco, tooltip });
+                }
+            });
+        }
+    });
+
+    return {listaFinal, avisos: Array.from(avisos)};
+}
+
+function renderResultados(listaFinal, avisos) {
+    const containerResultados = document.getElementById('resultados');
+    const containerFeedback = document.getElementById('feedback-container');
+    const containerLista = document.getElementById('lista-compras');
+    const containerCustos = document.getElementById('resumo-custos');
+    containerFeedback.innerHTML = ''; containerLista.innerHTML = ''; containerCustos.innerHTML = '';
+
+    avisos.forEach(aviso => { containerFeedback.innerHTML += `<div class="feedback-notice">${aviso}</div>`; });
+	
+	const categoriasHTML = { carne: '<h4>🥩 Carnes</h4>', acompanhamento: '<h4>🥗 Acompanhamentos</h4>', bebida: '<h4>🍻 Bebidas</h4>', extra: '<h4>🔥 Extras</h4>' };
+    let custoTotal = 0;
+
+    for (const [id, item] of listaFinal.entries()) {
+        const catKey = item.tipo.includes('bebida') ? 'bebida' : (item.tipo === 'acompanhamento' ? 'acompanhamento' : item.tipo);
+        const tooltipHTML = `<span class="tooltip-container"><span class="tooltip-icon">ⓘ</span><span class="tooltip-text">${item.tooltip}</span></span>`;
+        categoriasHTML[catKey] += `<div class="shopping-item"><span class="shopping-item-name">${item.nome} ${tooltipHTML}</span><span class="shopping-item-qty">${item.quantidade} ${item.unidade}</span></div>`;
+        containerCustos.innerHTML += `<div class="cost-item"><span>${item.nome} (${item.quantidade} ${item.unidade})</span><span>R$ ${item.custo.toFixed(2)}</span></div>`;
+        custoTotal += item.custo;
+    }
+	
+	for(const key in categoriasHTML) {
+		if(categoriasHTML[key].includes('shopping-item')) {
+			const div = document.createElement('div');
+			div.className = 'shopping-category';
+			div.innerHTML = categoriasHTML[key];
+			containerLista.appendChild(div);
+		}
+	}
+
+    if (listaFinal.size > 0) {
+        containerCustos.innerHTML += `<div class="cost-total"><span>TOTAL ESTIMADO:</span><span>R$ ${custoTotal.toFixed(2)}</span></div>`;
+    } else if(avisos.length === 0){
+         containerFeedback.innerHTML += `<div class="feedback-notice">Nenhum item para calcular. Verifique suas seleções.</div>`;
+    }
+
+    containerResultados.style.display = 'grid';
+}
+</script>
+
+</body>
+</html>
